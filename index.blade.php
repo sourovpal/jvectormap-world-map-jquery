@@ -50,3 +50,48 @@
     });
   </script>
 @endpush
+
+
+Route::get('visitor', function(){
+    
+    if(request()->ajax()){
+        $ip = request()->ip();
+        
+        $checkIp = Visitor::where("ip", $ip)->first();
+        
+        if($checkIp){
+            
+            date_default_timezone_set($checkIp->timezone);
+            $checkIp->local_time = date('y-m-d H:i:s', time());
+            $checkIp->browser = request()->header('User-Agent');
+            $checkIp->save();
+            $checkIp->increment('count');
+            
+        }else{
+            
+            $data = [];
+            $data['ip'] = $ip;
+            $data['count'] = 1;
+            $data['browser'] = request()->header('User-Agent');
+            $ipinfo = json_decode(file_get_contents('http://ipinfo.io/'.$ip.'/json'));
+            $geoplugin = json_decode(file_get_contents('http://www.geoplugin.net/json.gp?ip='. $ip));
+            if($ipinfo){
+                $data['city'] = $ipinfo->city??null;
+                $data['timezone'] = $ipinfo->timezone??null;
+                date_default_timezone_set($ipinfo->timezone);
+                $data['local_time'] = date('y-m-d H:i:s', time());
+            }
+            if($geoplugin){
+                $data['country'] = $geoplugin->geoplugin_countryName??null;
+                $data['continent_name'] = $geoplugin->geoplugin_continentName??null;
+                $data['country_code'] = $geoplugin->geoplugin_countryCode??null;
+                $data['currency_symbol'] = $geoplugin->geoplugin_currencySymbol_UTF8??null;
+            }
+            Visitor::create($data);
+            
+        }
+        return 'success';
+    }
+})->name('visitor');
+
+

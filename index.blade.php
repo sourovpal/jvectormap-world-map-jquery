@@ -24,6 +24,13 @@
         $('#world-map').vectorMap({
             map: 'world_mill',
             backgroundColor: 'none',
+            regionStyle: {
+              initial: {
+                fill: '#326497'
+              },
+              hover: {
+                  fill: "#326497"
+              }},
             series: {
               regions: [{
                 values:color,
